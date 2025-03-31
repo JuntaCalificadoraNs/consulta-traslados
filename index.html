@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Traslados Docentes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+        }
+        #resultado {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Consulta de Traslados Docentes</h1>
+    <label for="dni">Ingrese DNI:</label>
+    <input type="text" id="dni" placeholder="Ej: 26031504">
+    <button onclick="consultarDNI()">Consultar</button>
+    <div id="resultado"></div>
+
+    <script>
+        async function consultarDNI() {
+            const dni = document.getElementById("dni").value;
+            const spreadsheetId = "1JfxLgIJXGc1Y9icc2FibByHj6LJDg5zhzM5ZuaEeXUY";
+            const range = "Datos!A2:Z"; // Hoja "Datos", desde la fila 2
+            const apiKey = "AIzaSyD5WS5psR4mTND2PwdU4bBmWQ4e1vdaREI"; // Reemplaza con tu API Key
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const rows = data.values;
+                let resultado = "No se encontraron resultados para este DNI.";
+
+                rows.forEach(row => {
+                    // Columna 5 (F) = DNI Solicitante, Columna 21 (V) = DNI Desplazado
+                    if (row[5] === dni || row[21] === dni) {
+                        const esSolicitante = row[5] === dni;
+                        resultado = `
+                            <h3>${esSolicitante ? "Solicitante" : "Desplazado"}</h3>
+                            <p><strong>Nombre:</strong> ${row[4]}</p>
+                            <p><strong>Unidad Educativa Origen:</strong> ${row[6]}</p>
+                            <p><strong>Curso Origen:</strong> ${row[7]}</p>
+                            <p><strong>División Origen:</strong> ${row[8]}</p>
+                            <p><strong>Unidad Educativa Destino:</strong> ${row[13]}</p>
+                            <p><strong>Curso Destino:</strong> ${row[14]}</p>
+                            <p><strong>División Destino:</strong> ${row[15]}</p>
+                            <p><strong>Materia:</strong> ${row[17]}</p>
+                            <p><strong>Dictamen N°:</strong> ${row[22]}</p>
+                            <p><strong>Fecha Dictamen:</strong> ${row[23]}</p>
+                        `;
+                    }
+                });
+
+                document.getElementById("resultado").innerHTML = resultado;
+            } catch (error) {
+                document.getElementById("resultado").innerHTML = "Error al consultar los datos.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
